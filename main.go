@@ -21,7 +21,7 @@ func (al *AvailabilityLogger) Unavailable() {
 	}
 }
 
-func (al AvailabilityLogger) Reset() {
+func (al *AvailabilityLogger) Reset() {
 	al.unavailableCount = 0
 }
 
@@ -40,15 +40,15 @@ func CheckStats(statsStr string, al *AvailabilityLogger) {
 		fmt.Println("Load Average is too high:", stats[0])
 	}
 	if mem := float64(stats[2]) * 100 / float64(stats[1]); mem > 80 {
-		fmt.Println("Memory usage too high:", int(mem))
+		fmt.Printf("Memory usage too high: %v%%\n", int(mem))
 	}
 	if disk := float64(stats[4]) * 100 / float64(stats[3]); disk > 90 {
-		mbLeft := (stats[4] - stats[3]) >> 20
-		fmt.Printf("Free disk space is too low: %v Mb left", int(mbLeft))
+		mbLeft := float64(stats[3]-stats[4]) / 1024 / 1024
+		fmt.Printf("Free disk space is too low: %v Mb left\n", int(mbLeft))
 	}
 	if network := float64(stats[6]) * 100 / float64(stats[5]); network > 90 {
-		bwLeft := (stats[4] - stats[3]) >> 17
-		fmt.Printf("Network bandwidth usage high: %v Mbit/s available", int(bwLeft))
+		bwLeft := float64(stats[5]-stats[6]) / 1000 / 1000
+		fmt.Printf("Network bandwidth usage high: %v Mbit/s available\n", int(bwLeft))
 	}
 }
 
@@ -59,12 +59,14 @@ func main() {
 
 		r, err := http.Get("http://srv.msk01.gigacorp.local/_stats")
 		if err != nil {
+			fmt.Println(err)
 			al.Unavailable()
 			continue
 		}
 
 		contType := r.Header.Get("Content-Type")
 		if r.StatusCode != 200 || contType != "text/plain; charset=UTF-8" {
+			fmt.Println(r.Status, contType)
 			al.Unavailable()
 			continue
 		}
@@ -72,6 +74,7 @@ func main() {
 		body, err := io.ReadAll(r.Body)
 		r.Body.Close()
 		if err != nil {
+			fmt.Println(err)
 			al.Unavailable()
 			continue
 		}
