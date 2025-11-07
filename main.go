@@ -40,15 +40,15 @@ func CheckStats(statsStr string, al *AvailabilityLogger) {
 		fmt.Println("Load Average is too high:", stats[0])
 	}
 	if mem := float64(stats[2]) * 100 / float64(stats[1]); mem > 80 {
-		fmt.Println("Memory usage too high:", mem)
+		fmt.Println("Memory usage too high:", int(mem))
 	}
 	if disk := float64(stats[4]) * 100 / float64(stats[3]); disk > 90 {
 		mbLeft := (stats[4] - stats[3]) >> 20
-		fmt.Printf("Free disk space is too low: %v Mb left", mbLeft)
+		fmt.Printf("Free disk space is too low: %v Mb left", int(mbLeft))
 	}
 	if network := float64(stats[6]) * 100 / float64(stats[5]); network > 90 {
 		bwLeft := (stats[4] - stats[3]) >> 17
-		fmt.Println("Network bandwidth usage high: %v Mbit/s available", bwLeft)
+		fmt.Printf("Network bandwidth usage high: %v Mbit/s available", int(bwLeft))
 	}
 }
 
@@ -57,7 +57,7 @@ func main() {
 	for {
 		time.Sleep(time.Second)
 
-		r, err := http.Get("https://srv.msk01.gigacorp.local/_stats")
+		r, err := http.Get("http://srv.msk01.gigacorp.local/_stats")
 		if err != nil {
 			al.Unavailable()
 			continue
