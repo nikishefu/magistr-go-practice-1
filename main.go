@@ -59,14 +59,12 @@ func main() {
 
 		r, err := http.Get("http://srv.msk01.gigacorp.local/_stats")
 		if err != nil {
-			fmt.Println(err)
 			al.Unavailable()
 			continue
 		}
 
-		contType := r.Header.Get("Content-Type")
-		if r.StatusCode != 200 || contType != "text/plain; charset=UTF-8" {
-			fmt.Println(r.Status, contType)
+		contType := strings.ToLower(r.Header.Get("Content-Type"))
+		if r.StatusCode != 200 || contType != "text/plain; charset=utf-8" {
 			al.Unavailable()
 			continue
 		}
@@ -74,7 +72,6 @@ func main() {
 		body, err := io.ReadAll(r.Body)
 		r.Body.Close()
 		if err != nil {
-			fmt.Println(err)
 			al.Unavailable()
 			continue
 		}
